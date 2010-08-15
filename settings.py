@@ -1,0 +1,4 @@
+APRS_SERVER_HOST = 'rotate.aprs2.net'
+APRS_SERVER_PORT = 14580
+APRS_USER = ''
+APRS_PASSCODE = ''
