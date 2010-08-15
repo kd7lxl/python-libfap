@@ -5,7 +5,7 @@ libfap = cdll.LoadLibrary('libfap.dylib')
 
 time_t = c_long
 
-# fap_error_code_t
+fap_error_code_t = c_int
 (
     fapPACKET_NO,
     fapPACKET_SHORT,
@@ -157,7 +157,7 @@ class fap_telemetry_t(Structure):
 
 class fap_packet_t(Structure):
     _fields_ = [
-        ('error_code', POINTER(c_int)), # POINTER(fap_error_code_t)
+        ('error_code', POINTER(fap_error_code_t)), # POINTER(fap_error_code_t)
         ('error_message', c_char_p),
         ('type', POINTER(c_int)), # POINTER(fap_packet_type_t)
         
@@ -220,6 +220,9 @@ class fap_packet_t(Structure):
         return datetime.fromtimestamp(self.timestamp[0])
     
     def __repr__(self):
-        return '%s(\'%s\')' % (self.__class__.__name__, self.orig_packet)
+        return '%s(\'%s:%s\')' % (self.__class__.__name__, self.header, self.body)
 
 libfap.fap_parseaprs.restype = POINTER(fap_packet_t)
+
+libfap.fap_explain_error.argtypes = [fap_error_code_t]
+libfap.fap_explain_error.restype = c_char_p
