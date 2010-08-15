@@ -1,4 +1,4 @@
-python-libfab
+python-libfap
 =============
 
 Python ctypes bindings for libfap, the C port of the HAM::APRS::FAP Finnish APRS Parser
