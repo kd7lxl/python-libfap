@@ -1,7 +1,15 @@
 from ctypes import *
 from datetime import datetime
 
-libfap = cdll.LoadLibrary('libfap.dylib')
+try:
+    # Try loading linux library
+    libfap = cdll.LoadLibrary('libfap.so')
+except OSError:
+    try:
+        # Try loading Mac OS X library
+        libfap = cdll.LoadLibrary('libfap.dylib')
+    except OSError:
+        raise OSError, 'Could not find libfap.'
 
 time_t = c_long
 
