@@ -9,7 +9,11 @@ except OSError:
         # Try loading Mac OS X library
         libfap = cdll.LoadLibrary('libfap.dylib')
     except OSError:
-        raise OSError, 'Could not find libfap.'
+        try:
+            # This might find the dll for Windows, but it has not been tested
+            libfap = cdll.LoadLibrary('libfap')
+        except OSError:
+            raise OSError, 'Could not find libfap.'
 
 time_t = c_long
 
@@ -234,3 +238,32 @@ libfap.fap_parseaprs.restype = POINTER(fap_packet_t)
 
 libfap.fap_explain_error.argtypes = [fap_error_code_t]
 libfap.fap_explain_error.restype = c_char_p
+
+libfap.fap_mice_mbits_to_message.argtypes = [c_char_p]
+libfap.fap_mice_mbits_to_message.restype = c_char_p
+
+libfap.fap_distance.argtypes = [c_double, c_double, c_double, c_double]
+libfap.fap_distance.restype = c_double
+
+libfap.fap_direction.argtypes = [c_double, c_double, c_double, c_double]
+libfap.fap_direction.restype = c_double
+
+libfap.fap_count_digihops.argtypes = [POINTER(fap_packet_t)]
+libfap.fap_count_digihops.restype = c_int
+
+libfap.fap_check_ax25_call.argtypes = [c_char_p, c_short]
+libfap.fap_check_ax25_call.restype = c_char_p
+
+libfap.fap_kiss_to_tnc2.argtypes = [c_char_p, c_uint, c_char_p, c_uint, POINTER(c_uint)]
+libfap.fap_kiss_to_tnc2.restype = c_int
+
+libfap.fap_tnc2_to_kiss.argtypes = [c_char_p, c_uint, c_uint, c_char_p, c_uint]
+libfap.fap_tnc2_to_kiss.restype = c_int
+
+libfap.fap_ax25_to_tnc2.argtypes = [c_char_p, c_uint, c_char_p, c_uint]
+libfap.fap_ax25_to_tnc2.restype = c_int
+
+libfap.fap_tnc2_to_ax25.argtypes = [c_char_p, c_uint, c_char_p, c_uint]
+libfap.fap_tnc2_to_ax25.restype = c_int
+
+libfap.fap_free.argtypes = [POINTER(fap_packet_t)]
