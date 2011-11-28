@@ -16,9 +16,9 @@ sock_file = sock.makefile()
 libfap.fap_init()
 try:
     while 1:
-        packet_str = sock_file.readline().strip()
+        packet_str = sock_file.readline()
         packet = libfap.fap_parseaprs(packet_str, len(packet_str), 0)
-        print '%s' % (packet[0])
+        print '%s %s' % (packet[0].src_callsign, packet[0].body)
         libfap.fap_free(packet)
 except KeyboardInterrupt:
     pass
