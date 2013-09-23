@@ -167,6 +167,19 @@ class fap_telemetry_t(Structure):
         ('bits', c_byte * 8),
     ]
 
+class Wrapper:
+    def __init__(self, inner):
+        self.__inner = inner
+
+    def __getattr__(self, attr):
+        try:
+            print 'getattr'
+            return getattr(self.__inner, attr)
+        except ValueError, msg: # or whatever
+            print msg
+            return None
+
+#@Wrapper
 class fap_packet_t(Structure):
     _fields_ = [
         ('error_code', POINTER(fap_error_code_t)), # POINTER(fap_error_code_t)
@@ -195,8 +208,8 @@ class fap_packet_t(Structure):
         ('course', POINTER(c_uint)),
         ('speed', POINTER(c_double)),
         
-        ('symbol_table', c_byte),
-        ('symbol_code', c_byte),
+        ('symbol_table', c_char),
+        ('symbol_code', c_char),
         
         ('messaging', POINTER(c_short)),
         ('destination', c_char_p),
@@ -227,9 +240,9 @@ class fap_packet_t(Structure):
         ('capabilities', POINTER(c_char_p)),
         ('capabilities_len', c_uint),
     ]
-    
-    def get_timestamp(self):
-        return datetime.fromtimestamp(self.timestamp[0])
+    # 
+    # def get_timestamp(self):
+    #     return datetime.fromtimestamp(self.timestamp[0])
     
     def __repr__(self):
         return '%s(\'%s:%s\')' % (self.__class__.__name__, self.header, self.body)
@@ -267,3 +280,30 @@ libfap.fap_tnc2_to_ax25.argtypes = [c_char_p, c_uint, c_char_p, c_uint]
 libfap.fap_tnc2_to_ax25.restype = c_int
 
 libfap.fap_free.argtypes = [POINTER(fap_packet_t)]
+
+class Packet:
+    """Wrapper class for fap_parseaprs()
+    """
+
+    def __init__(self, packet_str):
+        self.packet = libfap.fap_parseaprs(packet_str, len(packet_str), 0)
+
+    def __getattr__(self, attr):
+        # convert path c array into list
+        if attr == 'path':
+            return [self.packet[0].path[i] for i in range(self.path_len)]
+
+        try:
+            val = getattr(self.packet[0], attr)
+            # dereference all pointers
+            if type(val).__name__.startswith('LP_'):
+                return val[0]
+            return val
+        except ValueError, error:
+            # return None upon NULL pointer dereference
+            if str(error) == "NULL pointer access":
+                return None
+            raise error
+
+    def __del__(self):
+        libfap.fap_free(self.packet)
