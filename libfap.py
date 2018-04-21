@@ -82,6 +82,7 @@ fap_error_code_t = c_int
     fapMICE_AMB_ODD,
     
     fapCOMP_INV,
+    fapCOMP_SHORT,
     
     fapMSG_INV,
     
@@ -103,7 +104,7 @@ fap_error_code_t = c_int
     fapNMEA_NOFIELDS,
     
     fapNO_APRS
-) = map(c_int, xrange(62))
+) = map(c_int, xrange(63))
 
 # fap_packet_type_t
 (
@@ -157,12 +158,12 @@ class fap_wx_report_t(Structure):
 
 class fap_telemetry_t(Structure):
     _fields_ = [
-        ('seq', c_uint),
-        ('val1', c_double),
-        ('val2', c_double),
-        ('val3', c_double),
-        ('val4', c_double),
-        ('val5', c_double),
+        ('seq', POINTER(c_uint)),
+        ('val1', POINTER(c_double)),
+        ('val2', POINTER(c_double)),
+        ('val3', POINTER(c_double)),
+        ('val4', POINTER(c_double)),
+        ('val5', POINTER(c_double)),
         
         ('bits', c_byte * 8),
     ]
@@ -170,7 +171,6 @@ class fap_telemetry_t(Structure):
 class fap_packet_t(Structure):
     _fields_ = [
         ('error_code', POINTER(fap_error_code_t)), # POINTER(fap_error_code_t)
-        ('error_message', c_char_p),
         ('type', POINTER(c_int)), # POINTER(fap_packet_type_t)
         
         ('orig_packet', c_char_p),
@@ -215,6 +215,7 @@ class fap_packet_t(Structure):
         ('radio_range', POINTER(c_uint)),
         ('phg', c_char_p),
         ('timestamp', POINTER(time_t)),
+        ('raw_timestamp', c_char_p),
         ('nmea_checksum_ok', POINTER(c_short)),
         
         ('wx_report', POINTER(fap_wx_report_t)),
@@ -227,20 +228,20 @@ class fap_packet_t(Structure):
         ('capabilities', POINTER(c_char_p)),
         ('capabilities_len', c_uint),
     ]
-    
+
     def get_timestamp(self):
-        return datetime.fromtimestamp(self.timestamp[0])
+        return datetime.fromtimestamp(self.timestamp.contents)
     
     def __repr__(self):
         return '%s(\'%s:%s\')' % (self.__class__.__name__, self.header, self.body)
 
 libfap.fap_parseaprs.restype = POINTER(fap_packet_t)
 
-libfap.fap_explain_error.argtypes = [fap_error_code_t]
-libfap.fap_explain_error.restype = c_char_p
+libfap.fap_explain_error.argtypes = [fap_error_code_t, c_char_p]
+libfap.fap_explain_error.restype = None
 
-libfap.fap_mice_mbits_to_message.argtypes = [c_char_p]
-libfap.fap_mice_mbits_to_message.restype = c_char_p
+libfap.fap_mice_mbits_to_message.argtypes = [c_char_p, c_char_p]
+libfap.fap_mice_mbits_to_message.restype = None
 
 libfap.fap_distance.argtypes = [c_double, c_double, c_double, c_double]
 libfap.fap_distance.restype = c_double
